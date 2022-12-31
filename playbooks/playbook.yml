@@ -1,0 +1,72 @@
+# defecto.conf Zerorate Colombia
+---
+- hosts: all
+  tasks:
+  
+    - name: Install the latest version of Nginx
+      yum:
+        name: nginx
+        state: latest
+
+    - name: Delete nginx path
+      ansible.builtin.file:
+        path: /etc/nginx
+        state: absent
+
+    - name: Crea directorios extra nginx
+      file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0755'
+      loop:
+        - /var/nginx/client_body_temp
+        - /var/nginx/proxy_temp
+        - /usr/share/nginx/html/assets
+
+    -  name: Extract AssetsIssue
+       ansible.builtin.unarchive:
+        src: asset/assets.tar
+        dest: /usr/share/nginx/html/        
+
+    - name: Extract nginxZerorate.tar into home directory
+      ansible.builtin.unarchive:
+        src: Nginx/nginx.tar
+        dest: /etc/
+
+    - name: Recursively change ownership of a directory
+      ansible.builtin.file:
+        path: /etc/nginx
+        state: directory
+        recurse: 'yes'
+        owner: root
+        group: root
+
+    - name: Copy config file CO
+      template:
+        dest: /etc/nginx/sites-enabled/defecto.conf
+        src: Nginx/prd.conf
+      vars:
+        resolver: 8.8.8.8
+        access_log_prd:
+        server_name_prd:
+        proxy_pass_prd: https://
+
+    - name: Restart nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+    - name: Make sure Nginx is running
+      ansible.builtin.systemd:
+        state: started
+        name: nginx
+        enabled: yes
+
+    - name: Copy fix Nginx file
+      template:
+        dest: /bin/live_site.sh
+        src: issues/scriptRestartNginx.sh
+        mode: '0777'
+      vars:
+        server_name_prd_tigo:
+        server_name_prd:
