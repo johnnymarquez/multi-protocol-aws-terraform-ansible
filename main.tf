@@ -25,7 +25,7 @@ terraform {
 # ----------------------------------------- AutoScaling Group ----------------------------------------
 
 module "prd-asg-01" {
-  source                  = "./../../../General/modules/autoscaling-group"
+  source                  = "./modules/autoscaling-group"
   asg_name                = "prd-asg"
   asg_lt_name             = "prd-lt"
   instances_name          = "prd-asg"
@@ -44,30 +44,9 @@ module "prd-asg-01" {
   disable_api_termination = true
   target_group_arns       = [module.prd-alb-asg.tg_443_arn]
   template                = ("../../../General/user-data/cis-userdata-.sh.tpl")
-  #template                = ("../../../General/user-data/cis-userdata-.sh.tpl")
   cost_center             = ""
   stack                   = "Development"
   creator                 = ""
-}
-
-# ------------------------------------------ NLB LINKED TO ALB -----------------------------------------------
-
-module "prd-nlb-asg" {
-  source                   = "./../../../General/modules/network-load-balancer-v1"
-  nlb_name                 = "prd-nlb-asg"
-  nlb_target_group_80_name = "prd-nlb-asg-tg"
-  security_groups          = ["sg-0b1edb9baa17cdf10"] # prd-alb-sg
-  subnets                  = [
-    "subnet-075c45245e685d747", # prd-public-1a
-    "subnet-048f6adf9d6736ac1"  # prd-public-1b
-  ]
-  vpc_id                   = "vpc-00e88c24d6fb45665" # VPC-PRD
-  target_id                = module.prd-alb-asg.alb_arn
-  target_type              = "alb"
-  access_logs_bucket       = "-stg-nlb-05feb-logs"
-  cost_center              = ""
-  stack                    = "Development"
-  creator                  = ""
 }
 
 # ------------------------------------------ ALB LINKED TO ASG -----------------------------------------------
@@ -89,6 +68,26 @@ module "prd-alb-asg" {
   cost_center                  = ""
   stack                        = "Development"
   creator                      = ""
+}
+
+# ------------------------------------------ NLB LINKED TO ALB -----------------------------------------------
+
+module "prd-nlb-asg" {
+  source                   = "./../../../General/modules/network-load-balancer-v1"
+  nlb_name                 = "prd-nlb-asg"
+  nlb_target_group_80_name = "prd-nlb-asg-tg"
+  security_groups          = ["sg-0b1edb9baa17cdf10"] # prd-alb-sg
+  subnets                  = [
+    "subnet-075c45245e685d747", # prd-public-1a
+    "subnet-048f6adf9d6736ac1"  # prd-public-1b
+  ]
+  vpc_id                   = "vpc-00e88c24d6fb45665" # VPC-PRD
+  target_id                = module.prd-alb-asg.alb_arn
+  target_type              = "alb"
+  access_logs_bucket       = "-stg-nlb-05feb-logs"
+  cost_center              = ""
+  stack                    = "Development"
+  creator                  = ""
 }
 
 # ------------------------------------------ CLOUDWATCH ALARMS -----------------------------------------------
@@ -165,7 +164,7 @@ module "sg" {
 #--------------------------EventBridge------------------------------------
 
 module "lambda_ChangeTagNameEC2ASG-" {
-  source        = "./../../../General/modules/lambda-function"
+  source        = "./../../../modules/lambda-function"
   function_name = "ChangeTagNameEC2ASG-"
   role          = "service-role/ChangeTagNameEC2ASG-role-qzfd3sqz"
   handler       = "ChangeTagNameEC2ASG-.lambda_handler"
