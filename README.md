@@ -17,7 +17,9 @@ configured behind an Application Load balancer, which at the same time it's conf
 ## Terraform
 
 In the root directory terraform files can be found with the necessary values to implement an example infrastructure with
-customized modules.
+customized modules. Intentionally no environments/workspaces were implemented here to show only 1 of nested values. This
+way, terraform file at the root level invoke the customized modules, which contain the necessary variables assigned. A
+better implementation of this infrastructure would be ```.tfvars``` files with different environments.
 Resource include:
 
 - Providers.
@@ -32,4 +34,5 @@ Resource include:
 
 # Ansible
 
-Once the infrastructure is fully provisioned, the EC2 instances can be configured as Nginx servers by Ansible playbook at ./playbook/nginx.yaml
+Once the infrastructure is fully provisioned, the EC2 instances can be configured as Nginx servers by Ansible playbook
+at ./playbook/nginx.yaml
